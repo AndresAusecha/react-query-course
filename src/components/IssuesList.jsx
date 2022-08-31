@@ -3,6 +3,7 @@ import { useQuery } from "react-query";
 import { Link } from "react-router-dom";
 import { GoIssueOpened, GoIssueClosed, GoComment } from "react-icons/go";
 import { relativeDate } from "../helpers/relativeDate";
+import { userUserData } from "../helpers/useUserData";
 
 
 const IssueItem = (props) => {
@@ -16,6 +17,8 @@ const IssueItem = (props) => {
     labels,
     status,
   } = props;
+  const assigneUser = userUserData(assignee);
+  const createdByUser = userUserData(createdBy);
   return (
     <li>
       <div>
@@ -37,13 +40,17 @@ const IssueItem = (props) => {
             ))}
           </span>
           <small>
-            #{number} opened {relativeDate(createdAt)}
+            #{number} opened {relativeDate(createdAt)} 
+            {` by ${createdByUser.isSuccess ? createdByUser.data.name : ""}`}
           </small>
       </div>
       {assignee ? (
-        <div>
-          {assignee}
-        </div>
+        <img src={assigneUser.isSuccess 
+          ? assigneUser.data.profilePictureUrl 
+          : ""}
+          className="assigned-to"
+          alt="Assigned to avatar"
+        />
       ) : null}
       <span className="comment-count">
         {commentCount > 0 ? (
