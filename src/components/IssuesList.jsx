@@ -2,6 +2,8 @@
 import { useQuery } from "react-query";
 import { Link } from "react-router-dom";
 import { GoIssueOpened, GoIssueClosed, GoComment } from "react-icons/go";
+import { relativeDate } from "../helpers/relativeDate";
+
 
 const IssueItem = (props) => {
   const {
@@ -35,9 +37,22 @@ const IssueItem = (props) => {
             ))}
           </span>
           <small>
-            #{number} opened {createdAt}
+            #{number} opened {relativeDate(createdAt)}
           </small>
       </div>
+      {assignee ? (
+        <div>
+          {assignee}
+        </div>
+      ) : null}
+      <span className="comment-count">
+        {commentCount > 0 ? (
+          <>
+            <GoComment />
+            {commentCount}
+          </>
+        ) : null}
+      </span>
     </li>
   )
 }
@@ -53,7 +68,7 @@ export default function IssuesList() {
       {isLoading
         ? <p>Loading...</p>
         : (
-          <ul>
+          <ul className="issues-list">
             {data.map((issue) =>
               <IssueItem 
                 key={issue.id}
