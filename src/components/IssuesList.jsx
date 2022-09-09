@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { GoIssueOpened, GoIssueClosed, GoComment } from "react-icons/go";
 import { relativeDate } from "../helpers/relativeDate";
 import { userUserData } from "../helpers/useUserData";
+import { Label } from "./Label";
 
 
 const IssueItem = (props) => {
@@ -34,9 +35,7 @@ const IssueItem = (props) => {
               {title}
             </Link>
             {labels.map((label) => (
-              <span key={label}>
-                {label}
-              </span>
+              <Label key={label} label={label} />
             ))}
           </span>
           <small>
@@ -64,9 +63,18 @@ const IssueItem = (props) => {
   )
 }
 
-export default function IssuesList() {
-  const { isLoading, data } = useQuery(["issues"],
-    () => fetch("/api/issues").then((res) => res.json())
+export default function IssuesList({
+  labels
+}) {
+  console.log(labels);
+  const { isLoading, data } = useQuery(
+    ["issues", {labels}],
+    () => {
+      const labelsString = labels
+        .map((label) => `labels[]=${label.name}`).join("&")
+      return fetch(`/api/issues?${labelsString}`)
+        .then((res) => res.json())
+    }
   );
   console.log(data);
   return (
