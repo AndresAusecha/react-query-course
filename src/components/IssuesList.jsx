@@ -64,15 +64,17 @@ const IssueItem = (props) => {
 }
 
 export default function IssuesList({
-  labels
+  labels,
+  status
 }) {
-  console.log(labels);
+  
   const { isLoading, data } = useQuery(
-    ["issues", {labels}],
+    ["issues", {labels, status}],
     () => {
+      const statusString = status && `&status=${status}`
       const labelsString = labels
         .map((label) => `labels[]=${label.name}`).join("&")
-      return fetch(`/api/issues?${labelsString}`)
+      return fetch(`/api/issues?${labelsString}${statusString}`)
         .then((res) => res.json())
     }
   );
