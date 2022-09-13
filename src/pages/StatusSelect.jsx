@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 
-const possibleStatus = [
+export const possibleStatus = [
   { id: "backlog", label: "Backlog" },
   { id: "todo", label: "To-do" },
   { id: "inProgress", label: "In Progress" },
