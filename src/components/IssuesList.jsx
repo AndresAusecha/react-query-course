@@ -5,6 +5,7 @@ import { GoIssueOpened, GoIssueClosed, GoComment } from "react-icons/go";
 import { relativeDate } from "../helpers/relativeDate";
 import { userUserData } from "../helpers/useUserData";
 import { Label } from "./Label";
+import { useState } from "react";
 
 
 const IssueItem = (props) => {
@@ -78,13 +79,38 @@ export default function IssuesList({
         .then((res) => res.json())
     }
   );
-  console.log(data);
+  const [searchValue, setSearchValue] = useState("");
+
+  const searchQuery = useQuery(
+    ["issues", "search", searchValue], 
+    () => fetch(`/api/search/issues?q=${searchValue}`)
+        .then((res) => res.json())
+    ,
+    {
+      enabled: searchValue.length > 0
+    });
+
+    console.log(searchQuery);
+
   return (
     <div>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          setSearchValue(e.target.elements.search.value);
+        }}
+      >
+        <label htmlFor=""></label>
+        <input type="search" placeholder="Search" name="search" id="search" onChange={(e) => {
+          if (e.target.value.length === 0) {
+            setSearchValue("");
+          }
+        }} />
+      </form>
       <h1>Issues List</h1>
       {isLoading
         ? <p>Loading...</p>
-        : (
+        : searchQuery.status === "idle" /* && searchQuery.isLoading === true  */? (
           <ul className="issues-list">
             {data.map((issue) =>
               <IssueItem 
@@ -102,6 +128,33 @@ export default function IssuesList({
             )
             }
           </ul>
+        ) : (
+          <>
+            <h2>Search results</h2>
+            {searchQuery.isLoading ? <p>Loading...</p> : (
+              <>
+                <p>
+                  {searchQuery?.data?.count} Results
+                </p>
+                <ul className="issues-list">
+                  {searchQuery?.data?.items?.map((issue) => (
+                    <IssueItem 
+                    key={issue.id}
+                    title={issue.title}
+                    number={issue.number}
+                    assignee={issue.assignee}
+                    commentCount={issue.comments.length}
+                    createdBy={issue.createdBy}
+                    createdAt={issue.createdDate}
+                    labels={issue.labels}
+                    status={issue.status}
+                    {...issue}
+                  />
+                  ))}
+                </ul>
+              </>
+            )}
+          </>
         )}
     </div>
   );
