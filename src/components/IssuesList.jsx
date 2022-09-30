@@ -76,12 +76,7 @@ export default function IssuesList({
       const statusString = status && `&status=${status}`
       const labelsString = labels
         .map((label) => `labels[]=${label.name}`).join("&")
-      return fetchWithError(`/api/issues?${labelsString}${statusString}`, {
-        headers: {
-          "x-error": true
-        }
-      })
-        .then((res) => res.json())
+      return fetchWithError(`/api/issues?${labelsString}${statusString}`)
     },
     {
       staleTime: 1000 * 60
