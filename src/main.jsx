@@ -4,7 +4,7 @@ import "./index.css";
 import App from "./App";
 import { BrowserRouter } from "react-router-dom";
 import { worker } from "@uidotdev/react-query-api";
-import { QueryClient, QueryClientProvider } from "react-query";
+import { QueryClient, QueryClientProvider, useIsFetching } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
 
 
@@ -16,6 +16,20 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+const QueryLoader = () => {
+  const isFetching = useIsFetching();
+
+  if (isFetching) {
+    return (
+      <div className="query-loader">
+        <p>Loading...</p>
+      </div>
+    )
+  }
+
+  return null;
+}
 
 new Promise((res) => setTimeout(res, 100))
   .then(() =>
@@ -32,6 +46,7 @@ new Promise((res) => setTimeout(res, 100))
             <BrowserRouter>
               <div className="container">
                 <App />
+                <QueryLoader />
               </div>
             </BrowserRouter>
         </QueryClientProvider>

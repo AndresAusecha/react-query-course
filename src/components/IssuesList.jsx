@@ -7,6 +7,7 @@ import { userUserData } from "../helpers/useUserData";
 import { Label } from "./Label";
 import { useState } from "react";
 import fetchWithError from "../helpers/fetchWithError";
+import Loader from "./Loader";
 
 
 const IssueItem = (props) => {
@@ -83,8 +84,7 @@ export default function IssuesList({
 
   const searchQuery = useQuery(
     ["issues", "search", searchValue],
-    () => fetch(`/api/search/issues?q=${searchValue}`)
-      .then((res) => res.json())
+    ({ signal }) => fetchWithError(`/api/search/issues?q=${searchValue}`, { signal })
     ,
     {
       enabled: searchValue.length > 0
@@ -96,6 +96,7 @@ export default function IssuesList({
     <div>
       <form
         onSubmit={(e) => {
+          console.log(e.target.elements.search.value); 
           e.preventDefault();
           setSearchValue(e.target.elements.search.value);
         }}
@@ -109,7 +110,7 @@ export default function IssuesList({
       </form>
       <h1>Issues List</h1>
       {isLoading
-        ? <p>Loading...</p>
+        ? <Loader />
         : isError
           ? <p>{error.message}</p>
           : searchQuery.status === "idle"
