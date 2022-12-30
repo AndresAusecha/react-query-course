@@ -1,5 +1,5 @@
 
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import { Link } from "react-router-dom";
 import { GoIssueOpened, GoIssueClosed, GoComment } from "react-icons/go";
 import { relativeDate } from "../helpers/relativeDate";
@@ -23,8 +23,12 @@ const IssueItem = (props) => {
   } = props;
   const assigneUser = userUserData(assignee);
   const createdByUser = userUserData(createdBy);
+  const queryClient = useQueryClient();
   return (
-    <li>
+    <li onMouseEnter={() => {
+      queryClient.prefetchQuery(["issues", number.toString()], () => fetchWithError(`/api/issues/${number}`))
+      queryClient.prefetchQuery(["issues", number.toString(), "comments"], () => fetchWithError(`/api/issues/${number}/comments`))
+    }}>
       <div>
         {status === "done" || status === "cancelled" ? (
           <GoIssueClosed style={{ color: "red" }} />
@@ -71,13 +75,19 @@ export default function IssuesList({
   status
 }) {
 
+  const queryClient = useQueryClient();
   const { isLoading, data, isError, error } = useQuery(
     ["issues", { labels, status }],
-    () => {
+    async () => {
       const statusString = status && `&status=${status}`
       const labelsString = labels
         .map((label) => `labels[]=${label.name}`).join("&")
-      return fetchWithError(`/api/issues?${labelsString}${statusString}`)
+      const results = await fetchWithError(`/api/issues?${labelsString}${statusString}`)
+      results.forEach(issue => {
+        queryClient.setQueryData(["issues", issue.number.toString()], issue)
+      });
+
+      return results
     },
   );
   const [searchValue, setSearchValue] = useState("");
