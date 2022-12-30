@@ -2,6 +2,7 @@ import { useQuery } from "react-query";
 import { useParams } from "react-router-dom";
 import { relativeDate } from "../helpers/relativeDate";
 import { userUserData } from "../helpers/useUserData";
+import { IssueAssignment } from "./IssueAssignment";
 import { IssueHeader } from "./IssueHeader";
 import IssueStatus from "./IssueStatus";
 
@@ -89,6 +90,10 @@ export default function IssueDetails() {
                 status={issueQuery.data.status}
                 issueNumber={issueQuery.data.number.toString()}
 
+              />
+              <IssueAssignment
+                assignee={issueQuery.data.assignee}
+                issueNumber={issueQuery.data.number.toString()}
               />
             </aside>
           </main>
