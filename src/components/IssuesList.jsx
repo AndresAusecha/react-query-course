@@ -72,23 +72,29 @@ const IssueItem = (props) => {
 
 export default function IssuesList({
   labels,
-  status
+  status,
+  pageNum,
+  setPageNum
 }) {
 
   const queryClient = useQueryClient();
-  const { isLoading, data, isError, error } = useQuery(
-    ["issues", { labels, status }],
+  const { isLoading, data, isError, error, isFetching, isPreviousData } = useQuery(
+    ["issues", { labels, status, pageNum }],
     async () => {
       const statusString = status && `&status=${status}`
       const labelsString = labels
         .map((label) => `labels[]=${label.name}`).join("&")
-      const results = await fetchWithError(`/api/issues?${labelsString}${statusString}`)
+      const paginationString = pageNum ? `&page=${pageNum}` : "";
+      const results = await fetchWithError(`/api/issues?${labelsString}${statusString}${paginationString}`)
       results.forEach(issue => {
         queryClient.setQueryData(["issues", issue.number.toString()], issue)
       });
 
       return results
     },
+    {
+      keepPreviousData: true
+    }
   );
   const [searchValue, setSearchValue] = useState("");
 
@@ -125,9 +131,10 @@ export default function IssuesList({
           ? <p>{error.message}</p>
           : searchQuery.status === "idle"
             ? (
-              <ul className="issues-list">
-                {data.map((issue) =>
-                  <IssueItem
+              <>
+                <ul className="issues-list">
+                  {data.map((issue) =>
+                    <IssueItem
                     key={issue.id}
                     title={issue.title}
                     number={issue.number}
@@ -138,10 +145,33 @@ export default function IssuesList({
                     labels={issue.labels}
                     status={issue.status}
                     {...issue}
-                  />
-                )
-                }
-              </ul>
+                    />
+                  )}
+                </ul>
+                <div className="pagination">
+                  <button 
+                    disabled={pageNum === 1}
+                    onClick={() => {
+                      if (pageNum - 1 > 0) {
+                        setPageNum(pageNum -1)
+                      }
+                    }}
+                  >
+                    Previous
+                  </button>
+                  <p>Page {pageNum}</p>
+                  <button 
+                    disabled={data?.length === 0 || isPreviousData}
+                    onClick={() => {
+                      if (data?.length !== 0 && !isPreviousData) {
+                        setPageNum(pageNum + 1)
+                      }
+                    }}
+                  >
+                    Next
+                  </button>
+                </div>
+              </>
             ) : (
               <>
                 <h2>Search results</h2>
