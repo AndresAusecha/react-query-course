@@ -1,4 +1,4 @@
-import { useQuery } from "react-query";
+import { useInfiniteQuery, useQuery } from "react-query";
 import { useParams } from "react-router-dom";
 import { relativeDate } from "../helpers/relativeDate";
 import { userUserData } from "../helpers/useUserData";
@@ -6,6 +6,7 @@ import { IssueAssignment } from "./IssueAssignment";
 import { IssueHeader } from "./IssueHeader";
 import IssueLabels from "./IssueLabels";
 import IssueStatus from "./IssueStatus";
+import Loader from "./Loader";
 
 function useIssueData(issueNumber) {
   return useQuery(["issues", issueNumber],
@@ -16,12 +17,17 @@ function useIssueData(issueNumber) {
 }
 
 function useIssueComments(issueNumber) {
-  return useQuery(
+  return useInfiniteQuery(
     ["issues", issueNumber, "comments"],
-    () => {
-      return fetch(`/api/issues/${issueNumber}/comments`).then((res) => res.json())
+    ({ signal, pageParam }) => {
+      return fetch(`/api/issues/${issueNumber}/comments?page=${pageParam}`).then((res) => res.json())
     }
-  )
+  , {
+    getNextPageParam: (lastPage, pages) => {
+      if (lastPage.length === 0) return;
+      return pages.length + 1
+    }
+  })
 }
 
 function Comment({ comment, createdBy, createdDate }) {
@@ -75,16 +81,26 @@ export default function IssueDetails() {
                 Loading...
               </p>
                 : (
-                  commentsQuery.data?.map(
-                    (comment) => (
+                  commentsQuery.data?.pages?.map(
+                    (commentPage) => commentPage.map((comment) => (
                       <Comment
                         comment={comment.comment}
                         createdBy={issueQuery.data.createdBy}
                         createdDate={issueQuery.data.createdDate}
                       />
-                    ))
+                    )))
                 )
               }
+              <section>
+                <button onClick={() => {
+                  commentsQuery.fetchNextPage()
+                }}>
+                  Next page
+                </button>
+                {commentsQuery.isFetchingNextPage && (
+                  <Loader />
+                )}
+              </section>
             </section>
             <aside>
               <IssueStatus 
